@@ -1,0 +1,29 @@
+package com.example.tdspring.models;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.Data;
+
+@Entity(name = "product")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Data
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String title;
+    private String size;
+    private String cmu;
+    private String brand;
+    @Column(length = 20971520)
+    private String picture;
+    @Transient
+    private byte[] pictureBase64;
+
+}
