@@ -11,4 +11,6 @@ import java.util.List;
 public interface CheckRepository extends JpaRepository<Check, Long> {
     List<Check> findByUser(User user);
     List<Check> findByStockId(Long id);
+    Long<Integer> countByCheckType(String checkType);
+    Long<Integer> countByStatusAndCheckType(Integer status, String checkType);
 }

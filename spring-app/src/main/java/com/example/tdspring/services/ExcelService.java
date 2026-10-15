@@ -5,6 +5,7 @@ import com.example.tdspring.dto.MonthlyExcelFileDTO;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import com.example.tdspring.repositories.CheckRepository;
 
 import jakarta.annotation.PostConstruct;
 import java.io.*;
@@ -16,11 +17,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ExcelService {
 
     private static final String EXCEL_DIR = "data/monthly-controls/";
     private static final String TEMPLATE_PATH = "templates/Controle_Template.xlsx";
     private static final TimeZone TZ_PARIS = TimeZone.getTimeZone("Europe/Paris");
+    private final CheckRepository CheckRepository;
+
+    public ExcelService(CheckRepository checkRepository) {
+        this.checkRepository = checkRepository;
+    }
 
     @PostConstruct
     public void init() {
@@ -74,15 +81,35 @@ public class ExcelService {
 
                 Sheet sheet = workbook.getSheetAt(0);
 
-                int rowIndex = findRowByAlitracer(sheet, checkRecord.getAlitracer());
+                int rowIndex = findRowByAlitracer(checkSheet, checkRecord.getAlitracer());
+                int total = this.checkRepository.countByDateBetweenAndCheckType('REGULATORY');
+                int totalOk = this.checkRepository.countByStatusAndDateBetweenAndCheckType(1, 'REGULATORY');
+                int totalNok = this.checkRepository.countByStatus(0,'REGULATORY');
+                int totalHS = this.checkRepository.countByStatus(2,'REGULATORY');
 
                 Row row;
                 if (rowIndex == -1) {
-                    rowIndex = sheet.getLastRowNum() + 1;
-                    row = sheet.createRow(rowIndex);
+                    rowIndex = checkSheet.getLastRowNum() + 1;
+                    row = checkSheet.createRow(rowIndex);
                 } else {
-                    row = sheet.getRow(rowIndex);
+                    row = checkSheet.getRow(rowIndex);
                 }
+
+                Row countTotalRow = sheet.createRow(1);
+                countTotalRow.createCell(9).setCellValue("Total d'équipements");
+                countTotalRow.createCell(10).setCellValue(total);
+
+                Row countOkRow = sheet.createRow(2);
+                countOkRow.createCell(9).setCellValue("Total d'équipements OK");
+                countOkRow.createCell(10).setCellValue(totalOk);
+
+                Row countNokRow = sheet.createRow(3);
+                countNokRow.createCell(9).setCellValue("Total d'équipements NOK");
+                countNokRow.createCell(10).setCellValue(totalNok);
+
+                Row countHsRow = sheet.createRow(4);
+                countHsRow.createCell(9).setCellValue("Total d'équipements HS");
+                countHsRow.createCell(10).setCellValue(totalHs);
 
                 // Formatter d'affichage avec timezone Paris
                 SimpleDateFormat displayFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
